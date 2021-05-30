@@ -1,0 +1,79 @@
+<html>
+    <head>
+        <title>Global Ice Chart Generator</title>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
+        <style>
+        #controlSpace {
+            float:left;
+            margin-right: 15px;
+            margin-top: 20px;
+        }
+        .center {
+            text-align: center;
+        }
+        #img {
+            width:750px;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Global Sea Ice Chart Generator</h1>
+    
+        <div id='controlSpace'>
+            <div id='map' style='width: 400px; height: 300px;'></div>
+            <div class="center" id='controlContainer'>
+                <form action="/predict" method="post" onsubmit="getCoords()">
+                    <input id = "long1" type="hidden" name="long1"/>
+                    <input id = "lat1" type="hidden" name="lat1"/>
+                    <input id = "dateStart" type="date" name="dateStart">
+                    <input type="submit">
+                    <div id='errorSpace'> </div>
+                </form>
+            </div>
+        </div>
+
+        <div id='displaySpace'>     
+            <img id='img'  src="static/{{img_name}}.jpg">
+            <div class="center"> Image aquired from: {{imgDate_f}}</div>
+        </div>
+                
+        <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
+        
+        var xCoord;
+        var yCoord;
+        var dateStart;
+        
+        xCoord = parseFloat("{{long1_f}}");
+        yCoord = parseFloat("{{lat1_f}}");
+        dateStart = "{{dateStart_f}}"
+           
+        var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [xCoord, yCoord],
+        zoom: 7
+        });
+        
+        // Add zoom and rotation controls to the map.
+        map.addControl(new mapboxgl.NavigationControl());
+        
+        document.getElementById("dateStart").value = dateStart
+        
+        function getCoords(){
+        document.getElementById("long1").value = map.getCenter().lng
+        document.getElementById("lat1").value = map.getCenter().lat
+        console.log(map.getCenter().lng)
+        console.log(map.getCenter().lat)
+        }
+        
+        document.getElementById("errorSpace").innerHTML = " "
+        if ("{{error_code_f}}"=="no_imgs") {
+        console.log('error here')
+        document.getElementById("errorSpace").innerHTML = "No images found. Please try a different location or date."
+        }
+        </script>
+        
+    </body>
+</html>

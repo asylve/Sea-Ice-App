@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <title>Global Ice Chart Generator</title>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
+        <style>
+        #map {
+            margin: 0 auto
+        }
+        .center {
+            text-align: center;
+        }
+        </style>
+    </head>
+    <body>
+        <div id='map' style='width: 400px; height: 300px;'></div>
+        
+        <div class= "center" id='controlContainer'>
+            <form action="/predict" method="post" onsubmit="getCoords()">
+                <input id = "long1" type="hidden" name="long1"/>
+                <input id = "lat1" type="hidden" name="lat1"/>
+                <input id = "dateStart" type="date" name="dateStart">
+                <input type="submit">
+            </form>
+        </div>
+        
+        <div id='imageSpace'>
+            <img src="static/default.jpg">
+        </div>
+    
+        <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
+        
+        var xCoord;
+        var yCoord;
+        var dateStart;
+        
+        xCoord = 0  
+        yCoord =0
+        dateStart = "2017-01-01"
+           
+        var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [xCoord, yCoord],
+        zoom: 7
+        });
+        
+        // Add zoom and rotation controls to the map.
+        map.addControl(new mapboxgl.NavigationControl());
+        
+        document.getElementById("dateStart").value = dateStart
+        
+        function getCoords(){
+        document.getElementById("long1").value = map.getCenter().lng
+        document.getElementById("lat1").value = map.getCenter().lat
+        console.log(map.getCenter().lng)
+        console.log(map.getCenter().lat)
+        }
+        
+        </script>
+        
+    </body>
+</html>

@@ -3,15 +3,15 @@ import numpy as np
 np.random.seed(42)
 
 import tensorflow as tf
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
 
+
 ## Imports from eo-learn and sentinelhub-py
-from eolearn.core import EOTask, LinearWorkflow, FeatureType, EOExecutor
-from eolearn.io import SentinelHubInputTask
-from eolearn.mask import AddValidDataMaskTask
-from eolearn.features import SimpleFilterTask
-from sentinelhub import BBox, DataCollection, SHConfig
+from sentinelhub import MimeType, BBox, SentinelHubRequest, SentinelHubDownloadClient, \
+    DataCollection, bbox_to_dimensions, SHConfig, SentinelHubCatalog, filter_times
 from sentinelhub.geo_utils import get_utm_crs, wgs84_to_utm
 
 config = SHConfig()
@@ -22,8 +22,10 @@ config.sh_client_secret = 'JCPgC{8h.SpO%>Rn1H!uI-IhF+KosoC75Dd^)pn#'
 
 n_colors = 8 #number of classes in the ice chart
 
-#returns images centred on coordinates with a width/heigh given by size in meters
-def get_images(longCenter, latCenter, time_start, size=70_000):
+#returns images centred on coordinates with a width/heigh given by size and resolution in meters
+def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
+    
+    catalog = SentinelHubCatalog(config=config)
     
     time_start = datetime.datetime.strptime(time_start, '%Y-%m-%d')
     time_delta = datetime.timedelta(days=60) #length of window to check for images
@@ -35,110 +37,112 @@ def get_images(longCenter, latCenter, time_start, size=70_000):
     bbox = BBox((longCenter-size/2, latCenter-size/2,longCenter+size/2, latCenter+size/2), 
                 crs=crs)#create a bounding box around the centre in the right crs
     
-    #bands to download from satellite data
-    band_names = ['B03', 'B04', 'B08']#false color bands
-
-    print(bbox)
-    #these classes are used toidentify and remove sections that are cloudy or have not data
-    class SentinelHubValidData:
-        """
-        Combine Sen2Cor's classification map with `IS_DATA` to define a `VALID_DATA_SH` mask
-        The SentinelHub's cloud mask is asumed to be found in eopatch.mask['CLM']
-        """
-        def __call__(self, eopatch):
-            return np.logical_and(eopatch.mask['IS_DATA'].astype(np.bool),
-                                  np.logical_not(eopatch.mask['CLM'].astype(np.bool)))
+    #search for all available images inthe given time range and bounding box
+    search_iterator = catalog.search(
+        DataCollection.SENTINEL2_L1C,
+        bbox=bbox,
+        time=time_interval,
+        query={
+            "eo:cloud_cover": {
+                "lt": 10 #allow up to 10% cloud cover in the full tile
+            }
+        },
+        fields={
+            "include": [
+                "id",
+                "properties.datetime",
+                "properties.eo:cloud_cover"
+            ],
+            "exclude": []
+        }
     
-    class CountValid(EOTask):
-        """
-        The task counts number of valid observations in time-series and stores the results in the timeless mask.
-        """
-        def __init__(self, count_what, feature_name):
-            self.what = count_what
-            self.name = feature_name
-    
-        def execute(self, eopatch):
-            eopatch.add_feature(FeatureType.MASK_TIMELESS, self.name, np.count_nonzero(eopatch.mask[self.what],axis=0))
-    
-            return eopatch
-    
-    #define the necessairy EOTasks which will be used in workflow do download satellite images and their corresponding sea ice masks
-    #task for downloading saetlite data
-    
-    #TASK TO RETRIEVE IMAGES FROM SENTINELHUB
-    add_data = SentinelHubInputTask(
-        bands_feature=(FeatureType.DATA, 'BANDS'),#location where the images will be stored in the EOPatch
-        bands = band_names,#bands to collect in the image
-        resolution=200,#resolution of the images in m
-        maxcc=0.8,#maximum cloud cover to allow 1=100%
-        time_difference=datetime.timedelta(minutes=120),#if two images are this close to each other they are considered the same
-        data_collection=DataCollection.SENTINEL2_L1C,
-        additional_data=[(FeatureType.MASK, 'dataMask', 'IS_DATA'),#also download the 'is_data' and cloud cover masks from sentinelhub
-                         (FeatureType.MASK, 'CLM'),]
     )
     
-    #TASK TO ADD A MASK THAT COMBINES THE CLOUD COVER AND 'IS_DATA' MASKS INTO ONE 'VALID_DATA' MASK
-    def calculate_valid_data_mask(eopatch):
-        is_data_mask = eopatch.mask['IS_DATA'].astype(bool)
-        cloud_mask = ~eopatch.mask['CLM'].astype(bool)
-        return np.logical_and(is_data_mask, cloud_mask)
+    time_difference = datetime.timedelta(hours=2)#treat timstamps in this window as the same
     
-    add_valid_mask = AddValidDataMaskTask(predicate=calculate_valid_data_mask, valid_data_feature='VALID_DATA')
+    all_timestamps = search_iterator.get_timestamps()
+    unique_acquisitions = filter_times(all_timestamps, time_difference)
     
-    #funtction to calculate cloud coverage used in the next task
-    def calculate_coverage(array):
-        return 1.0 - np.count_nonzero(array) / np.size(array)
-    
-    #CUSTOM EOTASK WHICH ADDS A SCALAR FEATURE WITH % OF IMAGE THAT IS VALID (AVAILABLE AND NOT CLOUDY)
-    class AddValidDataCoverage(EOTask):
-    
-        def execute(self, eopatch):
-    
-            valid_data = eopatch.get_feature(FeatureType.MASK, 'VALID_DATA')
-            time, height, width, channels = valid_data.shape
-    
-            coverage = np.apply_along_axis(calculate_coverage, 1,
-                                           valid_data.reshape((time, height * width * channels)))
-    
-            eopatch.add_feature(FeatureType.SCALAR, 'COVERAGE', coverage[:, np.newaxis])
-            return eopatch
-    
-    add_coverage = AddValidDataCoverage()
-    
-    #CUSTOM EOTASK WHICH REMOVES IMAGES IF THE MORE THAN 'cloud_coverage_threshold' IS INVALID DATA
-    cloud_coverage_threshold = 0.20
-    class ValidDataCoveragePredicate:
+    false_color_evalscript = """
+        //VERSION=3
         
-        def __init__(self, threshold):
-            self.threshold = threshold
-    
-        def __call__(self, array):
-            return calculate_coverage(array) < self.threshold
+        function setup() {
+          return {
+            input: ["B03", "B04", "B08", "CLM", "dataMask"],
+            output: [{ 
+                id: "falseColor",
+                bands: 3,
+            }, {
+                id: "badDataMask",
+                bands: 1,
+                sampleType: "UINT8"
+            }]
+          }
+        }
         
-    remove_cloudy_scenes = SimpleFilterTask((FeatureType.MASK, 'VALID_DATA'),
-                                            ValidDataCoveragePredicate(cloud_coverage_threshold))
-     
-    #generate eolearn workflow
-    workflow = LinearWorkflow(
-        add_data,
-        add_valid_mask,
-        add_coverage, 
-        remove_cloudy_scenes,)
+        function evaluatePixel(sample) {
+            return {
+              falseColor: [sample.B08, sample.B04, sample.B03],
+              badDataMask: [Math.min( sample.CLM 
+                                       + (1 - sample.dataMask), 1)]
+            };
+        }
+        """    
     
-    #Execute a workflow to gather EOpatches from a single time interval
-    # define additional parameters of the workflow
-    execution_args = []
-    execution_args.append({
-        add_data:{'bbox': bbox, 'time_interval': time_interval}
-    })
+    #find the masks that have valid data above threshold
+    thresh = 0.1 #must have valid data above this threshold
     
-    executor = EOExecutor(workflow, execution_args)
-    results = executor.run(return_results=True)
-    #executor.make_report()
-    eopatch = results[0].eopatch()
-    imgs = np.clip(eopatch.data['BANDS'][..., [2, 1, 0]], 0, 1)
-    imgDates = eopatch['timestamp']
-    return imgs, imgDates
+    process_requests = []
+    
+    for timestamp in unique_acquisitions:#create a request for each timestamp
+        
+        request = SentinelHubRequest(
+            evalscript=false_color_evalscript,
+            input_data=[
+                SentinelHubRequest.input_data(
+                    data_collection=DataCollection.SENTINEL2_L1C,
+                    time_interval=(timestamp - time_difference, timestamp + time_difference)
+                )
+            ],
+            responses=[
+                SentinelHubRequest.output_response('badDataMask', MimeType.PNG)#get only the bad data mask
+            ],
+            bbox=bbox,
+            size=bbox_to_dimensions(bbox, res),
+            config=config
+        )
+        process_requests.append(request)
+        
+    client = SentinelHubDownloadClient(config=config)
+    download_requests = [request.download_list[0] for request in process_requests]
+    mask_data = client.download(download_requests)
+    #find all the timestamps where the bad data is less than thresh
+    valid_acquisitions = [timestamp for mask, timestamp in zip(mask_data, unique_acquisitions)
+                       if mask.sum()/(mask.shape[0]*mask.shape[1])<thresh]
+    
+    #get the image for the earliest valid timstampe
+    timestamp = valid_acquisitions[0]
+        
+    request = SentinelHubRequest(
+        evalscript=false_color_evalscript,
+        input_data=[
+            SentinelHubRequest.input_data(
+                data_collection=DataCollection.SENTINEL2_L1C,
+                time_interval=(timestamp - time_difference, timestamp + time_difference)
+            )
+        ],
+        responses=[
+            SentinelHubRequest.output_response('falseColor', MimeType.PNG),
+        ],
+        bbox=bbox,
+        size=bbox_to_dimensions(bbox, res),
+        config=config
+    )
+    
+    download_request = request.download_list[0]
+    img = client.download(download_request)/255.0#scale the values to the range [0, 1]
+
+    return img, timestamp
 
 
 
@@ -207,10 +211,11 @@ def display(display_list):
     plt.savefig('static/download.jpg', pad_inches=0, bbox_inches='tight')
     
 def generate_data(longCenter, latCenter, time_start):
-    imgs, _ = get_images(longCenter, latCenter, time_start)
+    img, _ = get_images(longCenter, latCenter, time_start)
+    imgs = np.expand_dims(img, axis=0)
     masks = predict_mask(imgs)
     display([imgs[0], masks[0]])
 
 
 if __name__ == '__main__':
-    eopatch = generate_data(-82.0943, 52.8281, time_start = '2018-05-15')
+    generate_data(-103.991, 68.520, time_start = '2020-07-22')

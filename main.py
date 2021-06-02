@@ -10,6 +10,7 @@ This is a temporary script file.
 #    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 from icepredictor import get_images, predict_mask, display
+import numpy as np
 import uvicorn
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
@@ -36,14 +37,14 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     img_name = "download"
     
     try:
-        imgs, imgDates = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
-        imgDate = imgDates[0]
-        masks = predict_mask(imgs)
-        display([imgs[0], masks[0]])
-    except:
+        img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
+        imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
+        mask = predict_mask(imgs)[0]
+        display([img, mask])
+    except Exception as e:
         error_code='no_imgs'
         imgDate = 'no_imgs'
-        print('error')
+        print(e)
     else:
         error_code='OK'
         print('success')

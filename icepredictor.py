@@ -1,3 +1,4 @@
+import os
 import datetime
 import numpy as np
 np.random.seed(42)
@@ -16,9 +17,9 @@ from sentinelhub.geo_utils import get_utm_crs, wgs84_to_utm
 
 config = SHConfig()
 
-config.instance_id = 'b6fce5d9-6d40-4fec-a46e-d9bd2844abea'
-config.sh_client_id = '5cffa454-854c-4b3e-bc33-58ac529a4958'
-config.sh_client_secret = 'JCPgC{8h.SpO%>Rn1H!uI-IhF+KosoC75Dd^)pn#'
+config.instance_id = os.environ.get('INSTANCE_ID')
+config.sh_client_id = os.environ.get('SH_CLIENT_ID')
+config.sh_client_secret = os.environ.get('SH_CLIENT_SECRET')
 
 n_colors = 8 #number of classes in the ice chart
 

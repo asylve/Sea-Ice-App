@@ -151,7 +151,7 @@ def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
 
 #take in the an array of images and use the saved neural network to generate an ice chart
 def predict_mask(images):
-
+    print('1')
     #Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
     class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
         def __init__(self,
@@ -165,21 +165,22 @@ def predict_mask(images):
         def update_state(self, y_true, y_pred, sample_weight=None):
             y_pred = tf.math.argmax(y_pred, axis=-1)
             return super().update_state(y_true, y_pred, sample_weight)
-    
+    print('2')
     model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-       
+    print('3')
     IMG_SIZE = (256, 256)
     imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
-    
+    print('4')
     #function to generate a mask from the model predictions
     def create_masks(dataset):
         pred_mask = model(dataset, training=False)
         pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
         pred_mask = pred_mask[..., tf.newaxis]
         return pred_mask
-    
+    print('5')
     masks = create_masks(imgs_tf)
+    print('6')
     return masks.numpy()
 
 def make_cmap(n_colors):

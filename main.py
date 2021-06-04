@@ -42,8 +42,8 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
         mask = predict_mask(imgs)[0]
         display([img, mask])
     except Exception as e:
-        error_code='no_imgs'
-        imgDate = 'no_imgs'
+        error_code= e#'no_imgs'
+        imgDate = e#'no_imgs'
         print(e)
     else:
         error_code='OK'

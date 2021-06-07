@@ -4,6 +4,7 @@ import numpy as np
 np.random.seed(42)
 
 import tensorflow as tf
+tf.random.set_seed(1) #used to clearn kernel cache
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib.colors import ListedColormap

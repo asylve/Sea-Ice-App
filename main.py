@@ -17,6 +17,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import gc
+import tensorflow as tf
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -37,6 +38,7 @@ def form_get(request: Request):
 def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...), 
               dateStart: str = Form(...)):
     img_name = "download"
+    tf.random.set_seed(1) #used to clearn kernel cache
     gc.collect()
     
     try:

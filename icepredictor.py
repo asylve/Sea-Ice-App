@@ -172,7 +172,7 @@ def predict_mask(images, model):
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
     #function to generate a mask from the model predictions
     def create_masks(dataset):
-        pred_mask = model(dataset, training=False)
+        pred_mask = model.predict_on_batch(dataset)
         pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
         pred_mask = pred_mask[..., tf.newaxis]
         return pred_mask

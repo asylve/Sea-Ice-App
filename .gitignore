@@ -1,3 +1,2 @@
-data/
-eopatches/
-_obs/
+__pycache__/
+libraries/

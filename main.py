@@ -16,10 +16,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-from PIL import Image
-
 import gc
-from guppy import hpy; h=hpy()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")

@@ -9,17 +9,22 @@ This is a temporary script file.
 #if __name__ == "__main__":
 #    uvicorn.run(app, host="0.0.0.0", port=8000)
 
-from icepredictor import get_images, predict_mask, display
+from icepredictor import get_images, predict_mask, display, get_model
 import numpy as np
 import uvicorn
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from PIL import Image
+
+import gc
+from guppy import hpy; h=hpy()
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory='templates')
+model = get_model()
 
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
@@ -31,20 +36,17 @@ def form_get(request: Request):
                                                               'long1_f': long1, 'lat1_f': lat1, 
                                                               'imgDate_f':'2020-07-23 18:55:05', 'dateStart_f': dateStart})
 
-@app.post("/predict", response_class=HTMLResponse)
+@app.post("/", response_class=HTMLResponse)
 def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...), 
               dateStart: str = Form(...)):
     img_name = "download"
+    gc.collect()
     
     try:
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
-        print(img)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        print('B')
-        mask = predict_mask(imgs)[0]
-        print('C')
+        mask = predict_mask(imgs, model)[0]
         display([img, mask])
-        print('D')
     except Exception as e:
         error_code= 'no_imgs'
         imgDate = 'no_imgs'

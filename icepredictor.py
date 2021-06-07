@@ -145,13 +145,7 @@ def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
 
     return img, timestamp
 
-
-
-
-
-#take in the an array of images and use the saved neural network to generate an ice chart
-def predict_mask(images):
-    print('1')
+def get_model():
     #Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
     class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
         def __init__(self,
@@ -165,22 +159,23 @@ def predict_mask(images):
         def update_state(self, y_true, y_pred, sample_weight=None):
             y_pred = tf.math.argmax(y_pred, axis=-1)
             return super().update_state(y_true, y_pred, sample_weight)
-    print('2')
+    
     model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-    print('3')
+    return model
+
+
+#take in the an array of images and use the saved neural network to generate an ice chart
+def predict_mask(images, model):
     IMG_SIZE = (256, 256)
     imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
-    print('4')
     #function to generate a mask from the model predictions
     def create_masks(dataset):
         pred_mask = model(dataset, training=False)
         pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
         pred_mask = pred_mask[..., tf.newaxis]
         return pred_mask
-    print('5')
     masks = create_masks(imgs_tf)
-    print('6')
     return masks.numpy()
 
 def make_cmap(n_colors):
@@ -197,27 +192,29 @@ def make_cmap(n_colors):
 cmap = make_cmap(n_colors)
     
 def display(display_list):
-    fig, axs = plt.subplots(nrows=1, ncols = len(display_list), figsize=(15, 6))
-    for i in range(len(display_list)):
-        if i==0:
-            axs[i].imshow(tf.keras.preprocessing.image.array_to_img(display_list[i]))
-        else:
-            msk = axs[i].imshow(display_list[i], cmap = cmap, vmin=0, vmax=n_colors-1)
-        axs[i].axis('off')
+    #save image
+    im = tf.keras.preprocessing.image.array_to_img(display_list[0])
+    im.save("static/download_img.jpg")
+    
+    #save mask
+    msk = plt.imshow(display_list[1], cmap = cmap, vmin=0, vmax=n_colors-1)
+    plt.axis('off')
         
     #plot colorbar
-    cbar = fig.colorbar(msk, ax=axs, location='right')
+    cbar = plt.colorbar(msk, location='right')
     tick_locs = (np.arange(n_colors) + 0.5)*(n_colors-1)/n_colors#new tick locations so they are in the middle of the colorbar
     cbar.set_ticks(tick_locs)
     cbar.set_ticklabels(np.arange(n_colors))
-    plt.savefig('static/download.jpg', pad_inches=0, bbox_inches='tight')
+    plt.savefig('static/download_mask.jpg', pad_inches=0, bbox_inches='tight')
+    plt.clf()
     
 def generate_data(longCenter, latCenter, time_start):
+    model = get_model()
     img, _ = get_images(longCenter, latCenter, time_start)
     imgs = np.expand_dims(img, axis=0)
-    masks = predict_mask(imgs)
+    masks = predict_mask(imgs, model)
     display([imgs[0], masks[0]])
 
-
 if __name__ == '__main__':
-    generate_data(-103.991, 68.520, time_start = '2020-07-22')
+    model = get_model()
+    img, _ = get_images(-103.991, 68.520, time_start = '2020-07-22')

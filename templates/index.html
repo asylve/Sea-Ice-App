@@ -13,7 +13,8 @@
             text-align: center;
         }
         #img {
-            width:750px;
+            height: 300;
+            width : auto;
         }
         </style>
     </head>
@@ -23,7 +24,7 @@
         <div id='controlSpace'>
             <div id='map' style='width: 400px; height: 300px;'></div>
             <div class="center" id='controlContainer'>
-                <form action="/predict" method="post" onsubmit="getCoords()">
+                <form action="/" method="post" onsubmit="getCoords()">
                     <input id = "long1" type="hidden" name="long1"/>
                     <input id = "lat1" type="hidden" name="lat1"/>
                     <input id = "dateStart" type="date" name="dateStart">
@@ -34,7 +35,8 @@
         </div>
 
         <div id='displaySpace'>     
-            <img id='img'  src="static/{{img_name}}.jpg">
+            <img id='img'  src="static/{{img_name}}_img.jpg">
+            <img id='img'  src="static/{{img_name}}_mask.jpg">
             <div class="center"> Image aquired from: {{imgDate_f}}</div>
         </div>
                 

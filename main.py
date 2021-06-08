@@ -9,7 +9,7 @@ This is a temporary script file.
 #if __name__ == "__main__":
 #    uvicorn.run(app, host="0.0.0.0", port=8000)
 
-from icepredictor import get_images, predict_mask, display, get_model
+from icepredictor import get_images, predict_mask, display
 import numpy as np
 import uvicorn
 from fastapi import FastAPI, Request, Form
@@ -22,7 +22,6 @@ import tensorflow as tf
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory='templates')
-model = get_model()
 
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
@@ -44,7 +43,7 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     try:
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        mask = predict_mask(imgs, model)[0]
+        mask = predict_mask(imgs)[0]
         display([img, mask])
     except Exception as e:
         error_code= 'no_imgs'

@@ -43,7 +43,7 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     try:
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        mask = predict_mask(imgs)[0]
+        # mask = predict_mask(imgs)[0]
         # display([img, mask])
     except Exception as e:
         error_code= 'no_imgs'

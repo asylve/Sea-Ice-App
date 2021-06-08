@@ -23,6 +23,20 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory='templates')
 
+#Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
+class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
+    def __init__(self,
+               y_true=None,
+               y_pred=None,
+               num_classes=None,
+               name=None,
+               dtype=None):
+        super(UpdatedMeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.math.argmax(y_pred, axis=-1)
+        return super().update_state(y_true, y_pred, sample_weight)
+
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
     img_name = "default"
@@ -43,8 +57,20 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     try:
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        mask = predict_mask(imgs)[0]
+        #mask = predict_mask(imgs)[0]
         # display([img, mask])
+        
+        #generate a mask from the image
+        model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
+        # # pred_mask = model.predict_on_batch(imgs_tf)
+        # # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+        # # pred_mask = pred_mask[..., tf.newaxis]
+        
+        # #clearn model from memory
+        del model
+        gc.collect()
+        tf.keras.backend.clear_session()
+        gc.collect()
     except Exception as e:
         error_code= 'no_imgs'
         imgDate = 'no_imgs'

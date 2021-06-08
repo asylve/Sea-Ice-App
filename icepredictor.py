@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
+import gc
 
 
 ## Imports from eo-learn and sentinelhub-py

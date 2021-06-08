@@ -179,7 +179,7 @@ def predict_mask(images):
     # del model
     # gc.collect()
     
-    return 1#pred_mask.numpy()
+    return [1]#pred_mask.numpy()
 
 def make_cmap(n_colors):
     #define a colormap for the mask

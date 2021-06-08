@@ -170,9 +170,9 @@ def predict_mask(images):
     
     for n in range(20):
         model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-        pred_mask = model.predict_on_batch(imgs_tf)
-        pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
-        pred_mask = pred_mask[..., tf.newaxis]
+        # pred_mask = model.predict_on_batch(imgs_tf)
+        # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+        # pred_mask = pred_mask[..., tf.newaxis]
         print(n)
         
         #clearn model from memory
@@ -181,7 +181,7 @@ def predict_mask(images):
         tf.keras.backend.clear_session()
         gc.collect()
 
-    return pred_mask.numpy()
+    return [1]#pred_mask.numpy()
 
 def make_cmap(n_colors):
     #define a colormap for the mask

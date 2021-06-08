@@ -150,38 +150,36 @@ def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
 #take in the an array of images and use the saved neural network to generate an ice chart
 def predict_mask(images):
   
-    for n in range(20):
-        #Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
-        class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
-            def __init__(self,
-                       y_true=None,
-                       y_pred=None,
-                       num_classes=None,
-                       name=None,
-                       dtype=None):
-                super(UpdatedMeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
-        
-            def update_state(self, y_true, y_pred, sample_weight=None):
-                y_pred = tf.math.argmax(y_pred, axis=-1)
-                return super().update_state(y_true, y_pred, sample_weight)
-        
-        #convert image from numpy to tf and resize
-        IMG_SIZE = (256, 256)
-        imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
-        imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
-        
-        
-        model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-        # pred_mask = model.predict_on_batch(imgs_tf)
-        # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
-        # pred_mask = pred_mask[..., tf.newaxis]
-        print(n)
-        
-        #clearn model from memory
-        del model
-        gc.collect()
-        tf.keras.backend.clear_session()
-        gc.collect()
+    #Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
+    class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
+        def __init__(self,
+                   y_true=None,
+                   y_pred=None,
+                   num_classes=None,
+                   name=None,
+                   dtype=None):
+            super(UpdatedMeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
+    
+        def update_state(self, y_true, y_pred, sample_weight=None):
+            y_pred = tf.math.argmax(y_pred, axis=-1)
+            return super().update_state(y_true, y_pred, sample_weight)
+    
+    #convert image from numpy to tf and resize
+    IMG_SIZE = (256, 256)
+    imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
+    imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
+    
+    
+    model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
+    # pred_mask = model.predict_on_batch(imgs_tf)
+    # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+    # pred_mask = pred_mask[..., tf.newaxis]
+    
+    #clearn model from memory
+    del model
+    gc.collect()
+    tf.keras.backend.clear_session()
+    gc.collect()
 
     return [1]#pred_mask.numpy()
 

@@ -57,20 +57,8 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     try:
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        #mask = predict_mask(imgs)[0]
-        # display([img, mask])
-        
-        #generate a mask from the image
-        model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-        # # pred_mask = model.predict_on_batch(imgs_tf)
-        # # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
-        # # pred_mask = pred_mask[..., tf.newaxis]
-        
-        # #clearn model from memory
-        del model
-        gc.collect()
-        tf.keras.backend.clear_session()
-        gc.collect()
+        mask = predict_mask(imgs)[0]
+        display([img, mask])
     except Exception as e:
         error_code= 'no_imgs'
         imgDate = 'no_imgs'

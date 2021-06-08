@@ -20,8 +20,7 @@ gast==0.3.3
 google-auth==1.30.1
 google-auth-oauthlib==0.4.4
 google-pasta==0.2.0
-grpcio==1.32.0
-guppy3==3.1.0
+grpcio==1.34.1
 h11==0.12.0
 h5py==2.10.0
 idna==2.10
@@ -38,7 +37,7 @@ marshmallow==3.12.1
 marshmallow-enum==1.5.1
 matplotlib==3.4.2
 mypy-extensions==0.4.3
-numpy==1.19.5
+numpy==1.18.5
 oauthlib==3.1.1
 opt-einsum==3.3.0
 Pillow==8.2.0
@@ -56,15 +55,14 @@ rsa==4.7.2
 s3transfer==0.4.2
 scipy==1.4.1
 sentinelhub==3.3.0
-shapely==1.7.1
 six==1.15.0
 starlette==0.14.2
 stringcase==1.2.0
 tensorboard==2.5.0
 tensorboard-data-server==0.6.1
 tensorboard-plugin-wit==1.8.0
-tensorflow-cpu==2.4.0
-tensorflow-estimator==2.4.0
+tensorflow-cpu==2.3.0
+tensorflow-estimator==2.3.0
 termcolor==1.1.0
 tifffile==2021.4.8
 typing-extensions==3.7.4.3

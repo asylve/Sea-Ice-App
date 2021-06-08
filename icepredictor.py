@@ -167,9 +167,19 @@ def predict_mask(images):
     IMG_SIZE = (256, 256)
     imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
-
     
-    return [1]#pred_mask.numpy()
+    model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
+    pred_mask = model.predict_on_batch(imgs_tf)
+    pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+    pred_mask = pred_mask[..., tf.newaxis]
+    
+    #clearn model from memory
+    del model
+    gc.collect()
+    tf.keras.backend.clear_session()
+    gc.collect()
+
+    return pred_mask.numpy()
 
 def make_cmap(n_colors):
     #define a colormap for the mask
@@ -202,12 +212,13 @@ def display(display_list):
     plt.clf()
     
 def generate_data(longCenter, latCenter, time_start):
-    model = get_model()
     img, _ = get_images(longCenter, latCenter, time_start)
     imgs = np.expand_dims(img, axis=0)
-    masks = predict_mask(imgs, model)
+    masks = predict_mask(imgs)
     display([imgs[0], masks[0]])
 
 if __name__ == '__main__':
-    model = get_model()
     img, _ = get_images(-103.991, 68.520, time_start = '2020-07-22')
+    imgs = np.expand_dims(img, axis=0)
+    masks = predict_mask(imgs)
+    display([imgs[0], masks[0]])

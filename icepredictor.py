@@ -175,8 +175,9 @@ def predict_mask(images):
     # # pred_mask = pred_mask[..., tf.newaxis]
     
     # #clearn model from memory
-    tf.keras.backend.clear_session()
     del model
+    gc.collect()
+    tf.keras.backend.clear_session()
     gc.collect()
     
     return [1]#pred_mask.numpy()

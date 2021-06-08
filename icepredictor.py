@@ -168,16 +168,18 @@ def predict_mask(images):
     imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
     
-    model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-    pred_mask = model.predict_on_batch(imgs_tf)
-    pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
-    pred_mask = pred_mask[..., tf.newaxis]
-    
-    #clearn model from memory
-    del model
-    gc.collect()
-    tf.keras.backend.clear_session()
-    gc.collect()
+    for n in range(20):
+        model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
+        pred_mask = model.predict_on_batch(imgs_tf)
+        pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+        pred_mask = pred_mask[..., tf.newaxis]
+        print(n)
+        
+        #clearn model from memory
+        del model
+        gc.collect()
+        tf.keras.backend.clear_session()
+        gc.collect()
 
     return pred_mask.numpy()
 

@@ -9,7 +9,6 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib.colors import ListedColormap
 import matplotlib.pyplot as plt
-import gc
 
 
 ## Imports from eo-learn and sentinelhub-py
@@ -147,41 +146,37 @@ def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
 
     return img, timestamp
 
+#Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
+class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
+    def __init__(self,
+               y_true=None,
+               y_pred=None,
+               num_classes=None,
+               name=None,
+               dtype=None):
+        super(UpdatedMeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.math.argmax(y_pred, axis=-1)
+        return super().update_state(y_true, y_pred, sample_weight)
+
+def get_model():
+    model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
+    return model
+
 #take in the an array of images and use the saved neural network to generate an ice chart
-def predict_mask(images):
-  
-    #Define IoU metric as this is information is not stored in the saved model (by stack overflow user HuckleberryFinn)
-    class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
-        def __init__(self,
-                   y_true=None,
-                   y_pred=None,
-                   num_classes=None,
-                   name=None,
-                   dtype=None):
-            super(UpdatedMeanIoU, self).__init__(num_classes = num_classes,name=name, dtype=dtype)
-    
-        def update_state(self, y_true, y_pred, sample_weight=None):
-            y_pred = tf.math.argmax(y_pred, axis=-1)
-            return super().update_state(y_true, y_pred, sample_weight)
+def predict_mask(images, model):
     
     #convert image from numpy to tf and resize
     IMG_SIZE = (256, 256)
     imgs_tf = tf.convert_to_tensor(images)#convert numpy array of images to tensor for model input
     imgs_tf = tf.image.resize(imgs_tf, IMG_SIZE)#resize images
     
-    
-    model = tf.keras.models.load_model('model', custom_objects={'UpdatedMeanIoU':UpdatedMeanIoU})
-    # pred_mask = model.predict_on_batch(imgs_tf)
-    # pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
-    # pred_mask = pred_mask[..., tf.newaxis]
-    
-    #clearn model from memory
-    del model
-    gc.collect()
-    tf.keras.backend.clear_session()
-    gc.collect()
+    pred_mask = model.predict_on_batch(imgs_tf)
+    pred_mask = tf.argmax(pred_mask, axis=-1)#use the highest proabbaility class as the prediction
+    pred_mask = pred_mask[..., tf.newaxis]
 
-    return [1]#pred_mask.numpy()
+    return pred_mask.numpy()
 
 def make_cmap(n_colors):
     #define a colormap for the mask
@@ -189,7 +184,6 @@ def make_cmap(n_colors):
     jet = plt.get_cmap('jet', ice_colors)
     newcolors = jet(np.linspace(0, 1, ice_colors))
     black = np.array([[0, 0, 0, 1]])
-    white = np.array([[1, 1, 1, 1]])
     newcolors = np.concatenate((newcolors, black), axis=0) #land will be black
     cmap = ListedColormap(newcolors)
     return cmap
@@ -209,7 +203,7 @@ def display(display_list):
     cbar = plt.colorbar(msk, location='right')
     tick_locs = (np.arange(n_colors) + 0.5)*(n_colors-1)/n_colors#new tick locations so they are in the middle of the colorbar
     cbar.set_ticks(tick_locs)
-    cbar.set_ticklabels(np.arange(n_colors))
+    cbar.set_ticklabels(['<10%', '10-30%', '30-50%', '50-70%', '70-90%', '90-100%', 'Fast Ice', 'Land'])
     plt.savefig('static/download_mask.jpg', pad_inches=0, bbox_inches='tight')
     plt.clf()
     
@@ -222,5 +216,6 @@ def generate_data(longCenter, latCenter, time_start):
 if __name__ == '__main__':
     img, _ = get_images(-103.991, 68.520, time_start = '2020-07-22')
     imgs = np.expand_dims(img, axis=0)
-    masks = predict_mask(imgs)
+    model=get_model()
+    masks = predict_mask(imgs, model)
     display([imgs[0], masks[0]])

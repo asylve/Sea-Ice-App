@@ -1,43 +1,47 @@
 <html>
     <head>
-        <title>Global Ice Chart Generator</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Global Sea Ice Chart Generator</title>
+        <!-- Bootstrap CSS file -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        
         <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
         <style>
-        #controlSpace {
-            float:left;
-            margin-right: 15px;
-            margin-top: 20px;
-        }
-        .center {
-            text-align: center;
-        }
-        #img {
-            height: 300;
-            width : auto;
-        }
+    
         </style>
     </head>
-    <body>
-        <h1>Global Sea Ice Chart Generator</h1>
     
-        <div id='controlSpace'>
-            <div id='map' style='width: 400px; height: 300px;'></div>
-            <div class="center" id='controlContainer'>
-                <form action="/" method="post" onsubmit="getCoords()">
-                    <input id = "long1" type="hidden" name="long1"/>
-                    <input id = "lat1" type="hidden" name="lat1"/>
-                    <input id = "dateStart" type="date" name="dateStart">
-                    <input type="submit">
-                    <div id='errorSpace'> </div>
-                </form>
-            </div>
+    <body>
+        <div class="container-fluid bg-dark text-white">
+            <h1>Global Sea Ice Chart Generator</h1>
         </div>
-
-        <div id='displaySpace'>     
-            <img id='img'  src="static/{{img_name}}_img.jpg">
-            <img id='img'  src="static/{{img_name}}_mask.jpg">
-            <div class="center"> Image aquired from: {{imgDate_f}}</div>
+    
+    
+        <div class="container-fluid">
+            <div class="p-2 row">
+                <div class="p-0 col-xsm-6 col-md-3 text-center border">
+                    <div style="max-width: 500px">
+                        <div id="map" style="width: 97%; padding-top: 97%"></div>
+                    </div>
+                    <div class="center" id='controlContainer'>
+                        <form action="/" method="post" onsubmit="getCoords()">
+                            <input id = "long1" type="hidden" name="long1"/>
+                            <input id = "lat1" type="hidden" name="lat1"/>
+                            <input id = "dateStart" type="date" name="dateStart">
+                            <input type="submit">
+                            <div id='errorSpace'> </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="p-0 col-xsm-12 col-md-3 text-left border">
+                    <img id="img" style="max-width: 500px; width: 97%; height: auto" src="../static/download_img.jpg">    
+                </div>
+                <div class="p-0 col-xsm-12 col-md-6 text-left border">
+                    <img id="img" style="max-width: 760px; width:65.75%; height: auto" src="../static/download_mask.jpg">
+                </div>
+            </div>
         </div>
                 
         <script>
@@ -47,8 +51,8 @@
         var yCoord;
         var dateStart;
         
-        xCoord = parseFloat("{{long1_f}}");
-        yCoord = parseFloat("{{lat1_f}}");
+        xCoord = -103.991<!---parseFloat("{{long1_f}}");-->
+        yCoord = 68.520<!---parseFloat("{{lat1_f}}");-->
         dateStart = "{{dateStart_f}}"
            
         var map = new mapboxgl.Map({
@@ -76,6 +80,10 @@
         document.getElementById("errorSpace").innerHTML = "No images found. Please try a different location or date."
         }
         </script>
+            <!-- JS files: jQuery first, then Popper.js, then Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
         
     </body>
 </html>

@@ -1,23 +1,12 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
-
-
-#if __name__ == "__main__":
-#    uvicorn.run(app, host="0.0.0.0", port=8000)
-
-from icepredictor import get_images, predict_mask, display
+from icepredictor import get_images, predict_mask, display, get_model
 import numpy as np
-import uvicorn
 from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import gc
 import tensorflow as tf
+import os, psutil
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -37,6 +26,8 @@ class UpdatedMeanIoU(tf.keras.metrics.MeanIoU):
         y_pred = tf.math.argmax(y_pred, axis=-1)
         return super().update_state(y_true, y_pred, sample_weight)
 
+model = get_model()
+
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
     img_name = "default"
@@ -55,9 +46,10 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     gc.collect()
     
     try:
+        print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
-        mask = predict_mask(imgs)[0]
+        mask = predict_mask(imgs, model)[0]
         display([img, mask])
     except Exception as e:
         error_code= 'no_imgs'

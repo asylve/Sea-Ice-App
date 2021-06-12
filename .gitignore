@@ -1,6 +1,7 @@
 __pycache__/
 libraries/
 _obs/
+.env
 SeaIceKey.pem
 static/download_img.jpg
 static/download_mask.jpg

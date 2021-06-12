@@ -200,11 +200,14 @@ def display(display_list):
     plt.axis('off')
         
     #plot colorbar
-    cbar = plt.colorbar(msk, location='right')
+    cbar = plt.colorbar(msk, location='bottom', fraction=0.046, pad=0.04)
     tick_locs = (np.arange(n_colors) + 0.5)*(n_colors-1)/n_colors#new tick locations so they are in the middle of the colorbar
     cbar.set_ticks(tick_locs)
-    cbar.set_ticklabels(['<10%', '10-30%', '30-50%', '50-70%', '70-90%', '90-100%', 'Fast Ice', 'Land'])
-    plt.savefig('static/download_mask.jpg', pad_inches=0, bbox_inches='tight')
+    labels=['<10%', '10-30%', '30-50%', '50-70%','70-90%', '90-100%', 'Fast Ice', 'Land']
+    cbar.set_ticklabels(labels)
+    cbar.ax.set_xticklabels(labels, rotation=55)
+    
+    plt.savefig('static/download_mask.jpg', dpi=300, pad_inches=0, bbox_inches='tight')
     plt.clf()
     
 def generate_data(longCenter, latCenter, time_start):

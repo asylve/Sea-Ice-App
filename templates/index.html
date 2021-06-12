@@ -5,28 +5,42 @@
         <title>Global Sea Ice Chart Generator</title>
         <!-- Bootstrap CSS file -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+        <!-- Font Awesome -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         
         <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
         <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
         <style>
-    
+        .heading {
+        font-size:2vw;
+        }
+        .footer {
+        position: absolute;
+        margin-left: auto;
+        margin-right: auto;
+        left: 0;
+        right: 0;
+        text-align: center;
+        bottom: 5px;
+        }
         </style>
     </head>
     
     <body>
-        <div class="container-fluid bg-dark text-white">
+        <div class="container-fluid bg-dark text-white text-center">
             <h1>Global Sea Ice Chart Generator</h1>
         </div>
     
-    
         <div class="container-fluid">
-            <div class="p-2 row">
-                <div class="p-0 col-xsm-6 col-md-3 text-center border">
-                    <div style="max-width: 500px">
-                        <div id="map" style="width: 97%; padding-top: 97%"></div>
-                    </div>
+            <div class="row text-center" style="padding-left:10%; padding-right:10%">
+                <div class="p-1 col-xsm-12 col-md-4 text-center">
+                    <h3 class="heading"> Location 
+                    <i class="fa fa-info-circle" data-toggle="tooltip" title="Move to a location and select a date. The system will search for the earliest avilable satellite image within the next 60 days."></i>
+                    </h3>
+                    <div id="map" style="width:100%; aspect-ratio: 1/1"></div>
+                    <br>
                     <div class="center" id='controlContainer'>
-                        <form action="/" method="post" onsubmit="getCoords()">
+                        <form action="/predict" method="post" onsubmit="getCoords()">
                             <input id = "long1" type="hidden" name="long1"/>
                             <input id = "lat1" type="hidden" name="lat1"/>
                             <input id = "dateStart" type="date" name="dateStart">
@@ -35,15 +49,24 @@
                         </form>
                     </div>
                 </div>
-                <div class="p-0 col-xsm-12 col-md-3 text-left border">
-                    <img id="img" style="max-width: 500px; width: 97%; height: auto" src="../static/download_img.jpg">    
+                <div class="p-1 col-xsm-12 col-md-4 text-center">
+                    <h3 class="heading"> Sentinel-2 Image </h3>
+                    <img id="img" style="width: 100%; height: auto" src="../static/{{img_name}}_img.jpg">
+                    <br>
+                    <br>
+                    <div> Image aquired on: {{imgDate_f}}</div>    
                 </div>
-                <div class="p-0 col-xsm-12 col-md-6 text-left border">
-                    <img id="img" style="max-width: 760px; width:65.75%; height: auto" src="../static/download_mask.jpg">
+                <div class="p-1 col-xsm-12 col-md-4 text-center">
+                    <h3 class="heading"> Predicted Ice Chart </h3>
+                    <img id="img" style="width:100%; height: auto" src="../static/{{img_name}}_mask.jpg">
                 </div>
             </div>
+            
+            <div class="footer">
+                Visit <a href="https://asylve.github.io/">asylve.github.io</a> to learn more about this project.
+            </div>
         </div>
-                
+        
         <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
         
@@ -51,8 +74,8 @@
         var yCoord;
         var dateStart;
         
-        xCoord = -103.991<!---parseFloat("{{long1_f}}");-->
-        yCoord = 68.520<!---parseFloat("{{lat1_f}}");-->
+        xCoord = parseFloat("{{long1_f}}");
+        yCoord = parseFloat("{{lat1_f}}");
         dateStart = "{{dateStart_f}}"
            
         var map = new mapboxgl.Map({

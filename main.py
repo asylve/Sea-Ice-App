@@ -46,14 +46,17 @@ def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...
     gc.collect()
     
     try:
-        print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)
+        print(psutil.Process(os.getpid()).memory_info().rss / 1024 ** 2)#print memory consumption of python
         img, imgDate = get_images(longCenter = long1, latCenter = lat1, time_start = dateStart)
         imgs = np.expand_dims(img, axis=0)#predict mask expects an array of images so add an additional dimension
         mask = predict_mask(imgs, model)[0]
         display([img, mask])
+        
+        imgDate = str(imgDate)[:-6]#remove the trailing '+00:00' from the date string
     except Exception as e:
-        error_code= 'no_imgs'
-        imgDate = 'no_imgs'
+        error_code= 'No Images'
+        imgDate = 'No Images'
+        img_name = "none"
         print(e)
     else:
         error_code='OK'

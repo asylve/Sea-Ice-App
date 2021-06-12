@@ -217,8 +217,8 @@ def generate_data(longCenter, latCenter, time_start):
     display([imgs[0], masks[0]])
 
 if __name__ == '__main__':
-    img, _ = get_images(-103.991, 68.520, time_start = '2020-07-22')
-    imgs = np.expand_dims(img, axis=0)
-    model=get_model()
-    masks = predict_mask(imgs, model)
-    display([imgs[0], masks[0]])
+    img, date = get_images(-103.991, 68.520, time_start = '2020-07-22')
+    # imgs = np.expand_dims(img, axis=0)
+    # model=get_model()
+    # masks = predict_mask(imgs, model)
+    # display([imgs[0], masks[0]])

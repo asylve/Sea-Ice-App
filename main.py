@@ -38,7 +38,7 @@ def form_get(request: Request):
                                                               'long1_f': long1, 'lat1_f': lat1, 
                                                               'imgDate_f':'2020-07-23 18:55:05', 'dateStart_f': dateStart})
 
-@app.post("/predict", response_class=HTMLResponse)
+@app.post("/", response_class=HTMLResponse)
 def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...), 
               dateStart: str = Form(...)):
     img_name = "download"

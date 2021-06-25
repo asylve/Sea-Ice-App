@@ -46,7 +46,7 @@ def get_images(longCenter, latCenter, time_start, size=70_000, res = 200):
         time=time_interval,
         query={
             "eo:cloud_cover": {
-                "lt": 10 #allow up to 10% cloud cover in the full tile
+                "lt": 10 #allow up to 10% cloud cover in the full tile 
             }
         },
         fields={

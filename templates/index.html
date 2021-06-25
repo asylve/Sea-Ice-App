@@ -8,8 +8,8 @@
         <!-- Font Awesome -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
         
-        <script src='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.js'></script>
-        <link href='https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css' rel='stylesheet' />
+        <script src='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.js'></script>
+        <link href='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.css' rel='stylesheet' />
         <style>
         .heading {
         font-size:2vw;
@@ -67,37 +67,28 @@
         </div>
         
         <script>
-        <!--set the max date in the date sector to today-->
-        document.getElementById("dateStart").max = new Date().toISOString().split("T")[0];               
-        
-        mapboxgl.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
+        <!--set the max date in the date sector to today-->        
+        document.getElementById("dateStart").max = new Date().toISOString().split("T")[0];
+        document.getElementById("dateStart").value = "{{dateStart_f}}";              
         
         var xCoord;
         var yCoord;
-        var dateStart;
         
         <!-- get lat and long of the image (returned from the backend API)-->
         xCoord = parseFloat("{{long1_f}}");
         yCoord = parseFloat("{{lat1_f}}");
-        dateStart = "{{dateStart_f}}"
+
         
         <!--Format and print out the lat long coords under the image-->
         document.getElementById("printLat").innerHTML = yCoord.toFixed(2)
         document.getElementById("printLong").innerHTML = xCoord.toFixed(2)
 
-        <!--Generate the mapbx map with the desired zoom and location-->           
-        var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [xCoord, yCoord],
-        zoom: 7
-        });
-        
-        // Add zoom and rotation controls to the map.
-        map.addControl(new mapboxgl.NavigationControl());
-        map.addControl(new mapboxgl.ScaleControl(), 'top-left');
-        
-        document.getElementById("dateStart").value = dateStart
+        <!--Generate the mapbx map with the desired zoom and location-->
+        L.mapbox.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
+        var map = L.mapbox.map('map')
+            .setView([yCoord, xCoord], 8)
+            .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
+        L.control.scale({position: "topright", imperial: false}).addTo(map);
         
         function getCoords(){
             document.getElementById("submitButton").setAttribute("Disabled", "True")

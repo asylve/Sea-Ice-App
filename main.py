@@ -36,7 +36,7 @@ def form_get(request: Request):
     dateStart = '2021-06-22'
     return templates.TemplateResponse('index.html', context={'request': request, 'img_name': img_name,
                                                               'long1_f': long1, 'lat1_f': lat1, 
-                                                              'imgDate_f':'2020-07-23 18:55:05', 'dateStart_f': dateStart})
+                                                              'imgDate_f':'2021-06-23 11:15:47', 'dateStart_f': dateStart})
 
 @app.post("/", response_class=HTMLResponse)
 def form_post(request: Request, long1: float = Form(...), lat1: float = Form(...), 

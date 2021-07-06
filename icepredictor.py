@@ -348,10 +348,7 @@ if __name__ == '__main__':
     img, date = get_images(-70.63, 62.18, time_start = '2021-06-22')
     print(datetime.datetime.now() - start)
     imgs = np.expand_dims(img, axis=0)
-    print(datetime.datetime.now() - start)
+
     model=get_model()
-    print(datetime.datetime.now() - start)
     masks = predict_mask(imgs, model)
-    print(datetime.datetime.now() - start)
     display([imgs[0], masks[0]])
-    print(datetime.datetime.now() - start)

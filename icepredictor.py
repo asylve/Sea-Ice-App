@@ -352,3 +352,4 @@ if __name__ == '__main__':
     model=get_model()
     masks = predict_mask(imgs, model)
     display([imgs[0], masks[0]])
+    ###

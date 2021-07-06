@@ -67,8 +67,10 @@
         </div>
         
         <script>
-        <!--set the max date in the date sector to today-->        
-        document.getElementById("dateStart").max = new Date().toISOString().split("T")[0];
+        <!--set the max date in the date sector to today minus 7 days--> 
+        var dt = new Date();
+        dt.setDate( dt.getDate() - 7 );    
+        document.getElementById("dateStart").max = dt.toISOString().split("T")[0];
         document.getElementById("dateStart").value = "{{dateStart_f}}";              
         
         var xCoord;

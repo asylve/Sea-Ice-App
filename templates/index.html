@@ -86,7 +86,7 @@
         <!--Generate the mapbx map with the desired zoom and location-->
         L.mapbox.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
         var map = L.mapbox.map('map')
-            .setView([yCoord, xCoord], 8)
+            .setView([yCoord, xCoord], 7)
             .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
         L.control.scale({position: "topright", imperial: false}).addTo(map);
         

@@ -31,9 +31,9 @@ model = get_model()
 @app.get("/", response_class=HTMLResponse)
 def form_get(request: Request):
     img_name = "default"
-    long1 = -103.991
-    lat1 = 68.520
-    dateStart = '2020-07-22'
+    long1 = -70.63
+    lat1 = 62.18
+    dateStart = '2021-06-22'
     return templates.TemplateResponse('index.html', context={'request': request, 'img_name': img_name,
                                                               'long1_f': long1, 'lat1_f': lat1, 
                                                               'imgDate_f':'2020-07-23 18:55:05', 'dateStart_f': dateStart})

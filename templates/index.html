@@ -47,8 +47,8 @@
                     </div>
                 </div>
                 <div class="p-1 col-xsm-12 col-md-4 text-center">
-                    <h3 class="heading"> Sentinel-2 Image </h3>
-                    <img id="img" style="width: 100%; height: auto" src="../static/{{img_name}}_img.jpg">
+                    <h3 class="heading"> Sentinel-1 Image </h3>
+                    <img id="img" style="width: 100%; height: auto" src="../static/{{img_name}}_img.png">
                     <br>
                     <br style="line-height: 40%">
                     <div> Aquisition Date: {{imgDate_f}}</div> 
@@ -56,7 +56,7 @@
                 </div>
                 <div class="p-1 col-xsm-12 col-md-4 text-center">
                     <h3 class="heading"> Predicted Ice Chart </h3>
-                    <img id="img" style="width:100%; height: auto" src="../static/{{img_name}}_mask.jpg">
+                    <img id="img" style="width:100%; height: auto" src="../static/{{img_name}}_mask.png">
                 </div>
             </div>
             
@@ -86,7 +86,7 @@
         <!--Generate the mapbx map with the desired zoom and location-->
         L.mapbox.accessToken = 'pk.eyJ1IjoiYS1zeWx2ZXN0ZXIiLCJhIjoiY2twNzE3YXpwMGFmZjJubnA5MGxoN2lxZiJ9.m-f3koWGm6RqV72_vxTYEg';
         var map = L.mapbox.map('map')
-            .setView([yCoord, xCoord], 8)
+            .setView([yCoord, xCoord], 7)
             .addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
         L.control.scale({position: "topright", imperial: false}).addTo(map);
         
